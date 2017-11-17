@@ -37,6 +37,11 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 // Per-process state
 struct proc {
   uint sz;                     // Size of process memory (bytes)
+  // CS153 EDITED CODE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  //add pointer to point to top of the heap (bottom of user memory)
+  //add pointer to point to bottom part of stack
+  uint stack_base;	       // Points to bottom of stack
+  uint heap_top;	       // Points to top of heap
   pde_t* pgdir;                // Page table
   char *kstack;                // Bottom of kernel stack for this process
   enum procstate state;        // Process state
