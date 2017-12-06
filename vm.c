@@ -224,7 +224,11 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
   char *mem;
   uint a;
 
-  if(newsz >= KERNBASE)
+  //my code
+  uint numPagesToAllocate = (newsz - oldsz) / PGSIZE;
+  oldsz = KERNBASE - 1;
+
+  if(newsz > USERTOP) //attempting to access KERNBASE
     return 0;
   if(newsz < oldsz)
     return oldsz;
@@ -238,12 +242,7 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
       return 0;
     }
     memset(mem, 0, PGSIZE);
-    if(mappages(pgdir, (char*)a, PGSIZE, V2P(mem), PTE_W|PTE_U) < 0){
-      cprintf("allocuvm out of memory (2)\n");
-      deallocuvm(pgdir, newsz, oldsz);
-      kfree(mem);
-      return 0;
-    }
+    mappages(pgdir, (char*)a, PGSIZE, PADDR(mem), PTE_W|PTE_U);
   }
   return newsz;
 }

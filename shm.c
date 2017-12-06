@@ -31,9 +31,34 @@ void shminit() {
 int shm_open(int id, char **pointer) {
 
 //you write this
+	int flag = 0;
 
+	acquire(&(shm_table.lock));
 
+	for(int i = 0; i < shm_table.size(); i++)
+	{
+		if(id == shm_table.shm_pages[i].id)
+		{
+			flag = 1;
+		}
+	}
+	
+	if(flag == 0) //id not found in shm_table
+	{
+		//allocate a page and map it
+		//store this info in shm_table
+	}
+	else
+	{
+		//increase reference count
+		//use mappages to add the mapping between v address and p address.
+		mappages(	
+	}
 
+	//in either case, return the virtual address through the second param of the system call
+
+	//this is helpful somewhere
+	//myproc()->sz += PGSIZE;
 
 return 0; //added to remove compiler warning -- you should decide what to return
 }
