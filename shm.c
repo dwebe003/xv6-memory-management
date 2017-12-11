@@ -59,10 +59,11 @@ int shm_open(int id, char **pointer) {
 		shm_table.shm_pages[empty].frame = kalloc();
 
 		mappages(myproc()->pgdir, P2V(myproc()->sz), PGSIZE, V2P(*(shm_table.shm_pages[empty].frame)), PTE_W|PTE_U);
+		*pointer = (char *)(P2V(myproc()->sz));
+                return 0;
 		//kmalloc a page and store its address in frame. set refcnt to 1. map page
                 //allocate a page and map it
                 //store this info in shm_table
-                return 0;
         }
         else
         {
@@ -85,7 +86,15 @@ int shm_open(int id, char **pointer) {
 
 int shm_close(int id) {
 //you write this too!
-
+	acquire(&(shm_table.lock));
+	
+	for(int i = 0; i < 64; i++)
+	{
+	  if(id == shm_table.shm_pages[i].id)
+	  {
+		shm_table.shm_pages[i].refcnt -= 1;
+	  }
+	}
 
 
 
