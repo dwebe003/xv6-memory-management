@@ -46,7 +46,7 @@ int shm_open(int id, char **pointer) {
         if(flag == 0) //id not found in shm_table
         {
 		int index = 0;		
-		for(i = 0; i < 64; i++)
+		for(int i = 0; i < 64; i++)
 		{
 			if(shm_table.shm_pages[i].refcnt == 0)
 			{
