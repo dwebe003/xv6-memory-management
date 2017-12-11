@@ -49,8 +49,10 @@ int shm_open(int id, char **pointer) {
 		for(i = 0; i < 64; i++)
 		{
 			if(shm_table.shm_pages[i].refcnt == 0)
+			{
 			  index = i;
-			break;
+			  break;
+			}
 		}
 		
 		shm_table.shm_pages[index].id = id;
