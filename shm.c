@@ -82,7 +82,11 @@ int shm_open(int id, char **pointer) {
 
         //this is helpful somewhere
         //myproc()->sz += PGSIZE;
-	release(&(shm_table.lock));
+	if(flag > -1)
+	{
+		release(&(shm_table.lock));
+		return 1;
+	}
 
         return id; //added to remove compiler warning -- you should decide what to return
 }
@@ -90,7 +94,7 @@ int shm_open(int id, char **pointer) {
 int shm_close(int id) {
 //you write this too!
 	acquire(&(shm_table.lock));
-	//int flag = 99;
+	int flag = 99;
 	int i = 0;
 
 	for(i = 0; i < 64; i++)
@@ -100,19 +104,24 @@ int shm_close(int id) {
 		//shm_table.shm_pages[i].refcnt -= 1;
 		if(shm_table.shm_pages[i].refcnt > 0)
 		{
-			//flag = i;
+			flag = i;
 			shm_table.shm_pages[i].refcnt--;
-		}
-		if(shm_table.shm_pages[i].refcnt == 0)
-		{
-		  shm_table.shm_pages[i].id = 0;
-		  shm_table.shm_pages[i].frame = 0;
+			if(shm_table.shm_pages[i].refcnt == 0)
+			{
+		  		shm_table.shm_pages[i].id = 0;
+		 		 shm_table.shm_pages[i].frame = 0;
+			}
 		}
 	  }
 	}
+
+	if(flag != 99)
+	{		
+		release(&(shm_table.lock));
+		return 0;
+	}
 	
-	release(&(shm_table.lock));
 
-
+release(&(shm_table.lock));
 return 0; //added to remove compiler warning -- you should decide what to return
 }
