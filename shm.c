@@ -89,22 +89,29 @@ int shm_open(int id, char **pointer) {
 
 int shm_close(int id) {
 //you write this too!
-	//acquire(&(shm_table.lock));
-	
-	for(int i = 0; i < 64; i++)
+	acquire(&(shm_table.lock));
+	//int flag = 99;
+	int i = 0;
+
+	for(i = 0; i < 64; i++)
 	{
 	  if(id == shm_table.shm_pages[i].id)
 	  {
-		shm_table.shm_pages[i].refcnt -= 1;
-		
+		//shm_table.shm_pages[i].refcnt -= 1;
+		if(shm_table.shm_pages[i].refcnt > 0)
+		{
+			//flag = i;
+			shm_table.shm_pages[i].refcnt--;
+		}
 		if(shm_table.shm_pages[i].refcnt == 0)
 		{
 		  shm_table.shm_pages[i].id = 0;
+		  shm_table.shm_pages[i].frame = 0;
 		}
 	  }
 	}
 	
-	//release(&(shm_table.lock));
+	release(&(shm_table.lock));
 
 
 return 0; //added to remove compiler warning -- you should decide what to return
