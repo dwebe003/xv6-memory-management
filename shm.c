@@ -45,20 +45,19 @@ int shm_open(int id, char **pointer) {
 
         if(flag == 0) //id not found in shm_table
         {
-		int empty = -1;
-		int i = 0;
-		while(empty < 0)
+		int index = 0;		
+		for(i = 0; i < 64; i++)
 		{
-			if(!(&shm_table.shm_pages[i]))
-				empty = i;
-			i++;
+			if(shm_table.shm_pages[i].refcnt == 0)
+			  index = i;
+			break;
 		}
 		
-		shm_table.shm_pages[empty].id = id;
-		shm_table.shm_pages[empty].refcnt += 1;
-		shm_table.shm_pages[empty].frame = kalloc();
+		shm_table.shm_pages[index].id = id;
+		shm_table.shm_pages[index].refcnt += 1;
+		shm_table.shm_pages[index].frame = kalloc();
 
-		mappages(myproc()->pgdir, P2V(myproc()->sz), PGSIZE, V2P(*(shm_table.shm_pages[empty].frame)), PTE_W|PTE_U);
+		mappages(myproc()->pgdir, P2V(myproc()->sz), PGSIZE, V2P(*(shm_table.shm_pages[index].frame)), PTE_W|PTE_U);
 		*pointer = (char *)(P2V(myproc()->sz));
                 return 0;
 		//kmalloc a page and store its address in frame. set refcnt to 1. map page
