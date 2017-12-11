@@ -58,20 +58,22 @@ int shm_open(int id, char **pointer) {
 		shm_table.shm_pages[index].id = id;
 		shm_table.shm_pages[index].refcnt += 1;
 		shm_table.shm_pages[index].frame = kalloc();
+		
+		uint sz = PGROUNDUP(myproc()->sz);
 
-		mappages(myproc()->pgdir, P2V(myproc()->sz), PGSIZE, V2P(*(shm_table.shm_pages[index].frame)), PTE_W|PTE_U);
-		*pointer = (char *)(P2V(myproc()->sz));
-                return 0;
+		mappages(myproc()->pgdir, (char *)sz, PGSIZE, V2P((shm_table.shm_pages[index].frame)), PTE_W|PTE_U);
+		*pointer = (char *)(myproc()->sz);
+		myproc()->sz += PGSIZE;
 		//kmalloc a page and store its address in frame. set refcnt to 1. map page
                 //allocate a page and map it
                 //store this info in shm_table
         }
         else
         {
-		mappages(myproc()->pgdir, P2V(myproc()->sz), PGSIZE, V2P(*(shm_table.shm_pages[id].frame)), PTE_W|PTE_U);
-		*pointer = (char *)(P2V(myproc()->sz));
+		uint sz = PGROUNDUP(myproc()->sz);
+		mappages(myproc()->pgdir, (char *)sz, PGSIZE, V2P((shm_table.shm_pages[id].frame)), PTE_W|PTE_U);
+		*pointer = (char *)(myproc()->sz);
 		myproc()->sz += PGSIZE;
-                return 0;
                 //increase reference count
                 //use mappages to add the mapping between v address and p address.      
         }
@@ -82,7 +84,7 @@ int shm_open(int id, char **pointer) {
         //myproc()->sz += PGSIZE;
 	release(&(shm_table.lock));
 
-        return 0; //added to remove compiler warning -- you should decide what to return
+        return id; //added to remove compiler warning -- you should decide what to return
 }
 
 int shm_close(int id) {
