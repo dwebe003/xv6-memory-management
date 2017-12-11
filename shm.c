@@ -31,49 +31,47 @@ void shminit() {
 int shm_open(int id, char **pointer) {
 
 //you write this
-	int flag = 0;
-	int ind = -1;
+	acquire(&(shm_table.lock));
+	int flag = -1;
+	int i = 0;
 
-        acquire(&(shm_table.lock));
-
-        for(int i = 0; i < 64; i++)
+        for(i = 0; i < 64; i++)
         {
                 if(id == shm_table.shm_pages[i].id)
                 {
-                        flag = 1;
-			ind = i;
+                        flag = i;
                 }
         }
 
-        if(flag == 0) //id not found in shm_table
+        if(flag == -1) //id not found in shm_table
         {
-		int index = 0;		
-		for(int i = 0; i < 64; i++)
+		i = 0;	
+		for(i = 0; i < 64; i++)
 		{
-			if(shm_table.shm_pages[i].refcnt == 0)
+			if(shm_table.shm_pages[i].id == 0)
 			{
-			  index = i;
+			  flag = i;
+		
+			  shm_table.shm_pages[i].frame = kalloc();
+
+			  memset(shm_table.shm_pages[i].frame, 0, PGSIZE);
+
+			  mappages(myproc()->pgdir, (void *)myproc()->sz, PGSIZE, V2P((shm_table.shm_pages[i].frame)), PTE_W|PTE_U);
+			  *pointer = (char *)myproc()->sz;
+			  myproc()->sz += PGSIZE;
+			  shm_table.shm_pages[i].id = id;
+                	  shm_table.shm_pages[i].refcnt += 1;
 			  break;
 			}
 		}
-		
-		shm_table.shm_pages[index].frame = kalloc();
-
-		memset(shm_table.shm_pages[index].frame, 0, PGSIZE);
-
-		mappages(myproc()->pgdir, (char *)myproc()->sz, PGSIZE, V2P((shm_table.shm_pages[index].frame)), PTE_W|PTE_U);
-		*pointer = (char *)myproc()->sz;
-		myproc()->sz += PGSIZE;
-		shm_table.shm_pages[index].id = id;
-                shm_table.shm_pages[index].refcnt += 1;
 		//kmalloc a page and store its address in frame. set refcnt to 1. map page
                 //allocate a page and map it
                 //store this info in shm_table
         }
         else
         {
-		shm_table.shm_pages[ind].refcnt++;
-		mappages(myproc()->pgdir, (char *)myproc()->sz, PGSIZE, V2P((shm_table.shm_pages[ind].frame)), PTE_W|PTE_U);
+		shm_table.shm_pages[flag].refcnt++;
+		mappages(myproc()->pgdir, (void *)myproc()->sz, PGSIZE, V2P((shm_table.shm_pages[flag].frame)), PTE_W|PTE_U);
 		*pointer = (char *)myproc()->sz;
 		myproc()->sz += PGSIZE;
                 //increase reference count
