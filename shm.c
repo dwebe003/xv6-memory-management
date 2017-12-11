@@ -55,7 +55,7 @@ int shm_open(int id, char **pointer) {
 		}
 		
 		shm_table.shm_pages[empty].id = id;
-		shm_table.shm_pages[empty].refcnt = 1;
+		shm_table.shm_pages[empty].refcnt += 1;
 		shm_table.shm_pages[empty].frame = kalloc();
 
 		mappages(myproc()->pgdir, P2V(myproc()->sz), PGSIZE, V2P(*(shm_table.shm_pages[empty].frame)), PTE_W|PTE_U);
@@ -86,16 +86,22 @@ int shm_open(int id, char **pointer) {
 
 int shm_close(int id) {
 //you write this too!
-	acquire(&(shm_table.lock));
+	//acquire(&(shm_table.lock));
 	
 	for(int i = 0; i < 64; i++)
 	{
 	  if(id == shm_table.shm_pages[i].id)
 	  {
 		shm_table.shm_pages[i].refcnt -= 1;
+		
+		if(shm_table.shm_pages[i].refcnt == 0)
+		{
+		  shm_table.shm_pages[i].id = 0;
+		}
 	  }
 	}
-
+	
+	//release(&(shm_table.lock));
 
 
 return 0; //added to remove compiler warning -- you should decide what to return
